@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace HotelOffice.Models
 {
@@ -16,10 +11,15 @@ namespace HotelOffice.Models
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
 
+        [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 
-        // ==> الخطوة 1: أضيفي هذا السطر هنا
+        [MaxLength(50)]
         public string? NationalId { get; set; }
+     
+
+        [MaxLength(250)]
+        public string? Address { get; set; }
 
         public string? IdCardImageUrl { get; set; }
     }

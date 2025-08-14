@@ -1,5 +1,6 @@
 ﻿@page "/guests"
-
+@* @inherits Guests
+ *@
 <PageTitle>Guest Management</PageTitle>
 
 <h1>
@@ -8,15 +9,41 @@
 
 <p>Manage guest information, including personal details and identification.</p>
 
+@* ================================================================= *@
+@*           الجزء الخاص بعرض تفاصيل النزيل المختار (Modal)          *@
+@* ================================================================= *@
+@if (_selectedGuest is not null)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تفاصيل النزيل</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDetailsModal"></button>
+                </div>
+                <div class="modal-body d-flex justify-content-center">
+                    @* هنا نستخدم المكون الذي أنشأتِه لعرض البطاقة *@
+                    <GuestDetailCard GuestData="_selectedGuest" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDetailsModal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
 <div class="row mb-3">
     <div class="col-md-6">
-        <a href="/guests/add" class="btn btn-success">
+        @* قمت بتصحيح الرابط هنا ليتطابق مع الصفحات الحديثة *@
+        <a href="/upsert-guest" class="btn btn-success">
             <span class="bi bi-plus-circle-fill"></span> Add New Guest
         </a>
     </div>
     <div class="col-md-6">
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="Search by name or phone..." @bind="searchTerm" @bind:event="oninput" />
+            <input type="text" class="form-control" placeholder="Search by name or phone..." @bind="searchTerm" @bind:event="oninput" @onkeyup="SearchGuests" />
             <button class="btn btn-outline-secondary" type="button" @onclick="SearchGuests"><span class="bi bi-search"></span></button>
         </div>
     </div>
@@ -38,20 +65,34 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var guest in _guestList)
+                @if (!_guestList.Any())
                 {
                     <tr>
-                        <td>@guest.FullName</td>
-                        <td>@guest.PhoneNumber</td>
-                        <td>
-                            <a href="@($"guests/edit/{guest.Id}")" class="btn btn-sm btn-primary">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </a>
-                            <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(guest.Id)">
-                                <i class="bi bi-trash-fill"></i> Delete
-                            </button>
-                        </td>
+                        <td colspan="3" class="text-center">No guests found.</td>
                     </tr>
+                }
+                else
+                {
+                    @foreach (var guest in _guestList)
+                    {
+                        <tr>
+                            <td>@guest.FullName</td>
+                            <td>@guest.PhoneNumber</td>
+                            <td>
+                                @* قمت بتصحيح الرابط هنا أيضاً *@
+                                <a href="@($"/upsert-guest/{guest.Id}")" class="btn btn-sm btn-primary" title="Edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                @* ==> هذا هو الزر الجديد لعرض التفاصيل *@
+                                <button class="btn btn-sm btn-info" @onclick="() => ShowDetails(guest)" title="Details">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(guest.Id)" title="Delete">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>

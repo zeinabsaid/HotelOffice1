@@ -1,6 +1,9 @@
 ﻿using HotelOffice.Business.Services;
 using HotelOffice.Models;
 using Microsoft.AspNetCore.Components;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HotelOffice.Components.Pages
 {
@@ -15,6 +18,10 @@ namespace HotelOffice.Components.Pages
         private IEnumerable<Guest>? _guestList;
         private string searchTerm = string.Empty;
 
+        // ==> متغير جديد لتخزين النزيل المختار لعرض التفاصيل
+        private Guest? _selectedGuest;
+
+
         protected override async Task OnInitializedAsync()
         {
             await LoadGuests();
@@ -22,11 +29,20 @@ namespace HotelOffice.Components.Pages
 
         private async Task LoadGuests()
         {
-            _guestList = await GuestService.GetAllAsync(
-                filter: g => string.IsNullOrWhiteSpace(searchTerm) ||
-                             g.FullName.Contains(searchTerm) ||
-                             (g.PhoneNumber != null && g.PhoneNumber.Contains(searchTerm))
-            );
+            var allGuests = await GuestService.GetAllAsync();
+
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                _guestList = allGuests;
+            }
+            else
+            {
+                var lowerCaseSearchTerm = searchTerm.ToLower();
+                _guestList = allGuests.Where(g =>
+                    g.FullName.ToLower().Contains(lowerCaseSearchTerm) ||
+                    (g.PhoneNumber != null && g.PhoneNumber.Contains(searchTerm))
+                ).ToList();
+            }
         }
 
         private async Task SearchGuests()
@@ -37,11 +53,20 @@ namespace HotelOffice.Components.Pages
 
         private async Task HandleDelete(int guestId)
         {
-            // في تطبيق حقيقي، يجب إضافة نافذة تأكيد هنا
-            // Is it better to just mark as inactive instead of deleting?
-            // For now, we will delete.
+            // الأفضل هو إضافة نافذة تأكيد هنا قبل الحذف
             await GuestService.DeleteAsync(guestId);
             await LoadGuests(); // أعد تحميل القائمة بعد الحذف
+        }
+
+        // ==> دوال جديدة للتحكم في عرض التفاصيل
+        private void ShowDetails(Guest guest)
+        {
+            _selectedGuest = guest;
+        }
+
+        private void CloseDetailsModal()
+        {
+            _selectedGuest = null;
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿@page "/guests/add"
-@page "/guests/edit/{GuestId:int}"
+﻿@page "/upsert-guest"
+@page "/upsert-guest/{GuestId:int}"
 
 <PageTitle>@(GuestId == 0 ? "إضافة نزيل جديد" : "تعديل بيانات نزيل")</PageTitle>
 
@@ -8,56 +8,62 @@
 
 @if (IsLoading)
 {
-    <div class="d-flex justify-content-center">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div class="d-flex justify-content-center mt-4">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="ms-3 fs-4"><em>جاري تحميل البيانات...</em></p>
         </div>
-        <p class="ms-2"><em>جاري تحميل البيانات...</em></p>
-    </div>
 }
 else
 {
-    <div class="row">
-        <div class="col-md-7">
-            <EditForm Model="@_guest" OnValidSubmit="HandleUpsertGuest">
-                <DataAnnotationsValidator />
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="fullName" class="form-label">الاسم الكامل:</label>
-                        <InputText id="fullName" class="form-control" @bind-Value="_guest.FullName" />
-                        <ValidationMessage For="@(() => _guest.FullName)" />
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-8">
+                <EditForm Model="@_guest" OnValidSubmit="HandleUpsertGuest">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fullName" class="form-label">الاسم الكامل:</label>
+                            <InputText id="fullName" class="form-control" @bind-Value="_guest.FullName" />
+                            <ValidationMessage For="@(() => _guest.FullName)" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="nationalId" class="form-label">الرقم القومي:</label>
+                            <InputText id="nationalId" class="form-control" @bind-Value="_guest.NationalId" />
+                            <ValidationMessage For="@(() => _guest.NationalId)" />
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="nationalId" class="form-label">الرقم القومي:</label>
-                        <InputText id="nationalId" class="form-control" @bind-Value="_guest.NationalId" />
-                        <ValidationMessage For="@(() => _guest.NationalId)" />
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">رقم الهاتف:</label>
+                        <InputText id="phoneNumber" class="form-control" @bind-Value="_guest.PhoneNumber" />
+                         <ValidationMessage For="@(() => _guest.PhoneNumber)" />
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label for="phoneNumber" class="form-label">رقم الهاتف:</label>
-                    <InputText id="phoneNumber" class="form-control" @bind-Value="_guest.PhoneNumber" />
-                </div>
-                <div class="mb-3">
-                    <label for="idCardImage" class="form-label">صورة بطاقة الهوية / جواز السفر:</label>
-                    <InputFile id="idCardImage" class="form-control" OnChange="HandleFileSelection" />
-                </div>
-                <button type="submit" class="btn btn-primary" disabled="@IsSaving">
+                @* ======================================================== *@
+                @*        تم حذف حقل إدخال البريد الإلكتروني من هنا         *@
+                @* ======================================================== *@
+                     <div class="mb-3">
+                        <label for="address" class="form-label">العنوان:</label>
+                        <InputTextArea id="address" class="form-control" @bind-Value="_guest.Address" />
+                        <ValidationMessage For="@(() => _guest.Address)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="idCardImage" class="form-label">صورة بطاقة الهوية / جواز السفر:</label>
+                        <InputFile id="idCardImage" class="form-control" OnChange="HandleFileSelection" />
+                    </div>
+                    <button type="submit" class="btn btn-primary" disabled="@IsSaving">
                     @if (IsSaving)
                     {
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <span> جاري الحفظ...</span>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span> جاري الحفظ...</span>
                     }
                     else
                     {
-                        <span class="bi bi-check-circle-fill" aria-hidden="true"></span>
-                        <span> حفظ</span>
+                                <span class="bi bi-check-circle-fill" aria-hidden="true"></span>
+                                <span> حفظ</span>
                     }
-                </button>
-                <button type="button" class="btn btn-secondary" @onclick="GoToGuestList">إلغاء</button>
-            </EditForm>
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="GoToGuestList">إلغاء</button>
+                </EditForm>
+            </div>
         </div>
-        <div class="col-md-5">
-            <GuestDetailCard GuestData="_guest" NewImagePreviewUrl="_imageDataUrl" />
-        </div>
-    </div>
 }

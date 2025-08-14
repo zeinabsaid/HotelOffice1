@@ -1,30 +1,28 @@
 ﻿@using HotelOffice.Models
 @using System.IO
 
-@* الخطوة 1: نستخدم هنا الشرط "is not null" وهو أكثر أمانًا ويفهمه المترجم الحديث *@
 @if (GuestData is not null)
 {
-    <div class="card mb-3" style="max-width: 350px;">
-        <div class="card-header text-white bg-dark">
-            <strong>معاينة بيانات النزيل</strong>
-        </div>
-
-        <img src="@DisplayImageUrl" class="card-img-top" alt="معاينة بطاقة الهوية" style="max-height: 200px; object-fit: cover;" />
-
-        <div class="card-body">
-            <h5 class="card-title">@GuestData.FullName</h5>
-        </div>
-        <ul class="list-group list-group-flush">
+        <div class="card border-0">
+            <img src="@DisplayImageUrl" class="card-img-top" alt="ID Card for @GuestData.FullName" style="max-width: 100% !important; max-height: 250px !important; object-fit: cover !important;" />
+            <div class="card-body">
+                <h5 class="card-title">@GuestData.FullName</h5>
+            </div>
+            <ul class="list-group list-group-flush">
             @if (!string.IsNullOrEmpty(GuestData.NationalId))
             {
-                <li class="list-group-item"><strong>الرقم القومي:</strong> @GuestData.NationalId</li>
+                        <li class="list-group-item"><strong>الرقم القومي:</strong> @GuestData.NationalId</li>
             }
             @if (!string.IsNullOrEmpty(GuestData.PhoneNumber))
             {
-                <li class="list-group-item"><strong>رقم الهاتف:</strong> @GuestData.PhoneNumber</li>
+                        <li class="list-group-item"><strong>رقم الهاتف:</strong> @GuestData.PhoneNumber</li>
             }
-        </ul>
-    </div>
+            @if (!string.IsNullOrEmpty(GuestData.Address))
+            {
+                        <li class="list-group-item"><strong>العنوان:</strong> @GuestData.Address</li>
+            }
+            </ul>
+        </div>
 }
 
 @code {
@@ -43,21 +41,31 @@
             {
                 return NewImagePreviewUrl;
             }
-
-            // الخطوة 2: نتأكد مرة أخرى هنا قبل الوصول للخصائص
             if (GuestData is not null && !string.IsNullOrEmpty(GuestData.IdCardImageUrl))
             {
                 return GetBlazorImageSource(GuestData.IdCardImageUrl);
             }
-
             return "images/default-id-card.png";
         }
     }
 
+    // =======================================================================
+    //          تم تعديل هذه الدالة لتظهر لنا الأخطاء الخفية
+    // =======================================================================
     private string GetBlazorImageSource(string? imagePath)
     {
-        if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
+        if (string.IsNullOrEmpty(imagePath))
         {
+            return "images/default-id-card.png";
+        }
+
+        // نطبع المسار الذي نحاول قراءته
+        Console.WriteLine($"[DEBUG] Attempting to load image from path: {imagePath}");
+
+        if (!File.Exists(imagePath))
+        {
+            // نطبع رسالة إذا كان الملف غير موجود
+            Console.WriteLine($"[DEBUG] File does not exist at path: {imagePath}");
             return "images/default-id-card.png";
         }
         try
@@ -66,8 +74,10 @@
             string base64String = Convert.ToBase64String(imageBytes);
             return $"data:image/png;base64,{base64String}";
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            // نطبع رسالة الخطأ إذا فشلت عملية القراءة
+            Console.WriteLine($"[DEBUG] Failed to read image bytes from path '{imagePath}'. Error: {ex.Message}");
             return "images/default-id-card.png";
         }
     }
