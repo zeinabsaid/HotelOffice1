@@ -1,0 +1,61 @@
+﻿@page "/rooms/add"
+
+<PageTitle>Add New Room</PageTitle>
+
+<h3>Add New Room</h3>
+<hr />
+
+<EditForm Model="@newRoom" OnValidSubmit="@HandleAddRoom">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <div class="mb-3">
+        <label for="roomNumber" class="form-label">Room Number:</label>
+        <InputText id="roomNumber" class="form-control" @bind-Value="newRoom.RoomNumber" />
+        <ValidationMessage For="@(() => newRoom.RoomNumber)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="roomType" class="form-label">Room Type:</label>
+        <InputText id="roomType" class="form-control" @bind-Value="newRoom.RoomType" />
+    </div>
+
+    <div class="mb-3">
+        <label for="price" class="form-label">Price Per Night:</label>
+        <InputNumber id="price" class="form-control" @bind-Value="newRoom.PricePerNight" />
+        <ValidationMessage For="@(() => newRoom.PricePerNight)" />
+    </div>
+
+    <!-- ==> هذا هو الجزء الجديد لرفع الصور <== -->
+    <div class="mb-3">
+        <label for="imageFile" class="form-label">Room Image:</label>
+        <InputFile id="imageFile" class="form-control" OnChange="@LoadImage" />
+    </div>
+
+    <!-- ==> جزء لعرض الصورة المختارة (اختياري لكنه جميل) <== -->
+    @if (!string.IsNullOrEmpty(imageDataUrl))
+    {
+        <div class="mb-3">
+            <label>Preview:</label>
+            <img src="@imageDataUrl" class="img-fluid rounded" style="max-width: 200px;" />
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+        @if (isSaving)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span> Saving...</span>
+        }
+        else
+        {
+            <span>Save Room</span>
+        }
+    </button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+
+</EditForm>

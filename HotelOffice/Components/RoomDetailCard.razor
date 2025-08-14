@@ -1,0 +1,54 @@
+﻿@using HotelOffice.Models
+@using System.IO
+
+@if (RoomData != null)
+{
+        <div class="card border-0">
+
+        @* ===> هذا هو السطر الصحيح المكتوب في سطر واحد لتجنب الأخطاء <=== *@
+        <img src="@GetBlazorImageSource(RoomData.ImageUrl)" class="card-img-top" alt="Image for room @RoomData.RoomNumber" style="max-width: 100% !important; max-height: 250px !important; object-fit: cover !important;" />
+            <div class="card-body">
+                <h5 class="card-title">@RoomData.RoomType</h5>
+                <p class="card-text text-muted">
+                @if (!string.IsNullOrEmpty(RoomData.Description))
+                {
+                    @((MarkupString)RoomData.Description)
+                }
+                else
+                {
+                            <em>No description provided.</em>
+                }
+                </p>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Number:</strong> @RoomData.RoomNumber</li>
+                <li class="list-group-item"><strong>Price:</strong> @RoomData.PricePerNight.ToString("C")</li>
+            </ul>
+        </div>
+}
+
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public Room? RoomData { get; set; }
+
+    private string GetBlazorImageSource(string? imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
+        {
+            return "images/default-room.png";
+        }
+
+        try
+        {
+            byte[] imageBytes = File.ReadAllBytes(imagePath);
+            string base64String = Convert.ToBase64String(imageBytes);
+            return $"data:image/png;base64,{base64String}";
+        }
+        catch (Exception)
+        {
+            return "images/default-room.png";
+        }
+    }
+}

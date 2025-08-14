@@ -1,0 +1,59 @@
+﻿@page "/guests"
+
+<PageTitle>Guest Management</PageTitle>
+
+<h1>
+    <span class="bi bi-people-fill" aria-hidden="true"></span> Guest Management
+</h1>
+
+<p>Manage guest information, including personal details and identification.</p>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <a href="/guests/add" class="btn btn-success">
+            <span class="bi bi-plus-circle-fill"></span> Add New Guest
+        </a>
+    </div>
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search by name or phone..." @bind="searchTerm" @bind:event="oninput" />
+            <button class="btn btn-outline-secondary" type="button" @onclick="SearchGuests"><span class="bi bi-search"></span></button>
+        </div>
+    </div>
+</div>
+
+@if (_guestList == null)
+{
+    <p><em>Loading guests...</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Full Name</th>
+                    <th>Phone Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var guest in _guestList)
+                {
+                    <tr>
+                        <td>@guest.FullName</td>
+                        <td>@guest.PhoneNumber</td>
+                        <td>
+                            <a href="@($"guests/edit/{guest.Id}")" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(guest.Id)">
+                                <i class="bi bi-trash-fill"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
