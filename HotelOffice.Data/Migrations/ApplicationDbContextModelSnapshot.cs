@@ -54,6 +54,9 @@ namespace HotelOffice.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("BookingStatus")
                         .HasColumnType("TEXT");
 
@@ -90,6 +93,21 @@ namespace HotelOffice.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("HotelOffice.Models.Floor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Floors");
                 });
 
             modelBuilder.Entity("HotelOffice.Models.Guest", b =>
@@ -129,11 +147,20 @@ namespace HotelOffice.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Capacity")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("FloorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("ImageData")
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("NumberOfBeds")
+                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PricePerNight")
                         .HasColumnType("TEXT");
@@ -142,12 +169,31 @@ namespace HotelOffice.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("RoomType")
+                    b.Property<int>("RoomTypeId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FloorId");
+
+                    b.HasIndex("RoomTypeId");
+
+                    b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("HotelOffice.Models.RoomType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("RoomTypes");
                 });
 
             modelBuilder.Entity("HotelOffice.Models.User", b =>
@@ -199,7 +245,7 @@ namespace HotelOffice.Data.Migrations
             modelBuilder.Entity("HotelOffice.Models.Booking", b =>
                 {
                     b.HasOne("HotelOffice.Models.Guest", "Guest")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("GuestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -225,7 +271,41 @@ namespace HotelOffice.Data.Migrations
 
             modelBuilder.Entity("HotelOffice.Models.Room", b =>
                 {
+                    b.HasOne("HotelOffice.Models.Floor", "Floor")
+                        .WithMany("Rooms")
+                        .HasForeignKey("FloorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelOffice.Models.RoomType", "RoomType")
+                        .WithMany("Rooms")
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Floor");
+
+                    b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("HotelOffice.Models.Floor", b =>
+                {
+                    b.Navigation("Rooms");
+                });
+
+            modelBuilder.Entity("HotelOffice.Models.Guest", b =>
+                {
                     b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelOffice.Models.Room", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelOffice.Models.RoomType", b =>
+                {
+                    b.Navigation("Rooms");
                 });
 #pragma warning restore 612, 618
         }

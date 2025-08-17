@@ -14,3 +14,15 @@
 
 <h1>Hello, world!</h1>
 <p>Welcome, @(AppState.CurrentUser?.FullName)! Your role is: @(AppState.CurrentUser?.Role).</p>
+@* أضف هذا الزر في أي مكان مؤقتًا *@
+<button @onclick="ShowDbPath">اعرض مسار قاعدة البيانات</button>
+
+@code {
+    private void ShowDbPath()
+    {
+        string dbPath = System.IO.Path.Combine(FileSystem.AppDataDirectory, "hotel.db");
+        Console.WriteLine($"Database Path: {dbPath}");
+        // لعرض المسار في نافذة منبثقة
+        App.Current.MainPage.DisplayAlert("Database Path", dbPath, "OK");
+    }
+}

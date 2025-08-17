@@ -12,6 +12,8 @@ namespace HotelOffice.Data
         }
 
         // كل DbSet يمثل جدولاً في قاعدة البيانات
+        public DbSet<Floor> Floors { get; set; }
+        public DbSet<RoomType> RoomTypes { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Guest> Guests { get; set; }

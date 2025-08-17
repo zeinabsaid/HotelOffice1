@@ -1,4 +1,5 @@
-﻿using HotelOffice.Data;
+﻿using HotelOffice.Business.Interfaces;
+using HotelOffice.Data;
 using HotelOffice.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -14,38 +15,32 @@ namespace HotelOffice.Business.Services
             _db = context;
         }
 
-        // دالة التحقق من توافر الغرفة - أهم جزء في النظام
+        // دالة التحقق من توافر الغرفة
         public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime checkInDate, DateTime checkOutDate, int? excludeBookingId = null)
         {
-            // بناء الاستعلام الأولي للبحث عن الحجوزات المتداخلة
             var overlappingBookingsQuery = _db.Bookings
                 .Where(b => b.RoomId == roomId &&
-                            b.BookingStatus != "Cancelled" && // لا نحسب الحجوزات الملغاة
+                            b.BookingStatus != "Cancelled" &&
                             b.CheckInDate < checkOutDate &&
                             b.CheckOutDate > checkInDate);
 
-            // إذا كنا نقوم بتحديث حجز موجود، يجب أن نستثنيه من عملية التحقق
             if (excludeBookingId.HasValue)
             {
                 overlappingBookingsQuery = overlappingBookingsQuery.Where(b => b.Id != excludeBookingId.Value);
             }
 
-            // إذا كان عدد الحجوزات المتداخلة صفرًا، فالغرفة متاحة
             var isAvailable = !await overlappingBookingsQuery.AnyAsync();
             return isAvailable;
         }
 
         public async Task<Booking> CreateAsync(Booking booking)
         {
-            // 1. التحقق من التوافر قبل أي شيء
             var isAvailable = await IsRoomAvailableAsync(booking.RoomId, booking.CheckInDate, booking.CheckOutDate);
             if (!isAvailable)
             {
-                // إذا كانت الغرفة غير متاحة، نطلق خطأ لنمنع إنشاء الحجز
                 throw new InvalidOperationException("This room is not available for the selected dates.");
             }
 
-            // 2. حساب عدد الليالي والتكلفة الإجمالية
             var room = await _db.Rooms.FindAsync(booking.RoomId);
             if (room != null)
             {
@@ -53,7 +48,6 @@ namespace HotelOffice.Business.Services
                 booking.TotalCost = booking.NumberOfNights * room.PricePerNight;
             }
 
-            // 3. إضافة الحجز وحفظه
             await _db.Bookings.AddAsync(booking);
             await _db.SaveChangesAsync();
             return booking;
@@ -76,13 +70,15 @@ namespace HotelOffice.Business.Services
                 }
             }
 
-            // ترتيب الحجوزات من الأحدث للأقدم
             return await query.OrderByDescending(b => b.CheckInDate).ToListAsync();
         }
 
         public async Task<Booking?> GetByIdAsync(int id)
         {
-            return await _db.Bookings.FindAsync(id);
+            return await _db.Bookings
+                .Include(b => b.Room)
+                .Include(b => b.Guest)
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task UpdateAsync(Booking booking)
@@ -99,6 +95,56 @@ namespace HotelOffice.Business.Services
                 _db.Bookings.Remove(booking);
                 await _db.SaveChangesAsync();
             }
+        }
+
+        public async Task<bool> RecordPaymentAsync(int bookingId, decimal amount)
+        {
+            var booking = await _db.Bookings.FindAsync(bookingId);
+            if (booking == null || amount <= 0) return false;
+
+            booking.AmountPaid += amount;
+
+            if (booking.AmountPaid > booking.TotalCost)
+            {
+                booking.AmountPaid = booking.TotalCost;
+            }
+
+            _db.Bookings.Update(booking);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateBookingStatusAsync(int bookingId, string newStatus)
+        {
+            var booking = await _db.Bookings.FindAsync(bookingId);
+            if (booking == null) return false;
+
+            if (newStatus == "CheckedOut")
+            {
+                if (booking.RemainingBalance > 0)
+                {
+                    throw new InvalidOperationException("Cannot check-out with an outstanding balance. Remaining amount is: " + booking.RemainingBalance);
+                }
+            }
+
+            booking.BookingStatus = newStatus;
+
+            _db.Bookings.Update(booking);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        // ==> التنفيذ الفعلي لدالة حساب الإيرادات
+        public async Task<decimal> CalculateRevenueAsync(DateTime startDate, DateTime endDate)
+        {
+            // سنقوم بتجميع التكلفة الإجمالية للحجوزات التي تم تسجيل مغادرتها خلال الفترة المحددة
+            var revenue = await _db.Bookings
+                .Where(b => b.BookingStatus == "CheckedOut" &&
+                            b.CheckOutDate.Date >= startDate.Date &&
+                            b.CheckOutDate.Date <= endDate.Date)
+                .SumAsync(b => b.TotalCost);
+
+            return revenue;
         }
     }
 }

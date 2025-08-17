@@ -1,61 +1,125 @@
 ﻿@page "/rooms/add"
+@inherits AddRoomBase
 
-<PageTitle>Add New Room</PageTitle>
+<PageTitle>إضافة غرفة جديدة</PageTitle>
 
-<h3>Add New Room</h3>
+<h3>إضافة غرفة جديدة</h3>
 <hr />
 
-<EditForm Model="@newRoom" OnValidSubmit="@HandleAddRoom">
-    <DataAnnotationsValidator />
-
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-danger">@errorMessage</div>
-    }
-
-    <div class="mb-3">
-        <label for="roomNumber" class="form-label">Room Number:</label>
-        <InputText id="roomNumber" class="form-control" @bind-Value="newRoom.RoomNumber" />
-        <ValidationMessage For="@(() => newRoom.RoomNumber)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="roomType" class="form-label">Room Type:</label>
-        <InputText id="roomType" class="form-control" @bind-Value="newRoom.RoomType" />
-    </div>
-
-    <div class="mb-3">
-        <label for="price" class="form-label">Price Per Night:</label>
-        <InputNumber id="price" class="form-control" @bind-Value="newRoom.PricePerNight" />
-        <ValidationMessage For="@(() => newRoom.PricePerNight)" />
-    </div>
-
-    <!-- ==> هذا هو الجزء الجديد لرفع الصور <== -->
-    <div class="mb-3">
-        <label for="imageFile" class="form-label">Room Image:</label>
-        <InputFile id="imageFile" class="form-control" OnChange="@LoadImage" />
-    </div>
-
-    <!-- ==> جزء لعرض الصورة المختارة (اختياري لكنه جميل) <== -->
-    @if (!string.IsNullOrEmpty(imageDataUrl))
-    {
-        <div class="mb-3">
-            <label>Preview:</label>
-            <img src="@imageDataUrl" class="img-fluid rounded" style="max-width: 200px;" />
+@if (IsLoading)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-    }
+        <span class="ms-3"><em>جاري تحميل البيانات الأساسية...</em></span>
+    </div>
+}
+else
+{
+    <EditForm Model="@newRoom" OnValidSubmit="@HandleAddRoom">
+        <DataAnnotationsValidator />
 
-    <button type="submit" class="btn btn-primary" disabled="@isSaving">
-        @if (isSaving)
+        @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span> Saving...</span>
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
         }
-        else
-        {
-            <span>Save Room</span>
-        }
-    </button>
-    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
 
-</EditForm>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="roomNumber" class="form-label">رقم الغرفة:</label>
+                <InputText id="roomNumber" class="form-control" @bind-Value="newRoom.RoomNumber" />
+                <ValidationMessage For="@(() => newRoom.RoomNumber)" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="price" class="form-label">السعر لليلة:</label>
+                <InputNumber id="price" class="form-control" @bind-Value="newRoom.PricePerNight" />
+                <ValidationMessage For="@(() => newRoom.PricePerNight)" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="floor" class="form-label">الطابق:</label>
+                <InputSelect id="floor" class="form-select" @bind-Value="newRoom.FloorId">
+                    <option value="0" disabled>-- اختر طابق --</option>
+                    @foreach (var floor in floors)
+                    {
+                        <option value="@floor.Id">@floor.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => newRoom.FloorId)" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="roomType" class="form-label">نوع الغرفة:</label>
+                <InputSelect id="roomType" class="form-select" @bind-Value="newRoom.RoomTypeId">
+                    <option value="0" disabled>-- اختر نوع الغرفة --</option>
+                    @foreach (var type in roomTypes)
+                    {
+                        <option value="@type.Id">@type.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => newRoom.RoomTypeId)" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="capacity" class="form-label">عدد الأشخاص:</label>
+                <InputNumber id="capacity" class="form-control" @bind-Value="newRoom.Capacity" />
+                <ValidationMessage For="@(() => newRoom.Capacity)" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="beds" class="form-label">عدد الأسرّة:</label>
+                <InputNumber id="beds" class="form-control" @bind-Value="newRoom.NumberOfBeds" />
+                <ValidationMessage For="@(() => newRoom.NumberOfBeds)" />
+            </div>
+            <div class="col-12 mb-3">
+                <label for="description" class="form-label">الوصف:</label>
+                <InputTextArea id="description" class="form-control" @bind-Value="newRoom.Description" rows="3" />
+            </div>
+        </div>
+
+        <hr />
+        <h5 class="mb-3">المرافق المتوفرة</h5>
+        <div class="row mb-3">
+            <!-- ✅ --- تم إرجاع هذا الجزء إلى الطريقة البسيطة والآمنة --- ✅ -->
+            @foreach (var amenity in allAmenities)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6" @key="amenity.Id">
+                    <div class="form-check">
+                        <InputCheckbox id="@($"amenity-{amenity.Id}")" class="form-check-input" @bind-Value="selectedAmenities[amenity.Id]" />
+                        <label class="form-check-label" for="@($"amenity-{amenity.Id}")">@amenity.Name</label>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <hr />
+        <h5 class="mb-3">صورة الغرفة</h5>
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-3">
+                <InputFile id="imageUpload" class="form-control" OnChange="HandleImageUpload" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(imageDataUrl))
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="text-center">
+                        <img src="@imageDataUrl" class="rounded border" style="max-width: 200px; max-height: 150px; object-fit: cover;" alt="معاينة الصورة" />
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <span>حفظ الغرفة</span>
+                }
+            </button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                <span>إلغاء</span>
+            </button>
+        </div>
+    </EditForm>
+}

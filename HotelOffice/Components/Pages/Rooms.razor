@@ -1,6 +1,5 @@
 ﻿@page "/rooms"
-
-@* لسنا بحاجة إلى أي جمل using إضافية هنا *@
+@inherits RoomsBase
 
 <PageTitle>Rooms Management</PageTitle>
 
@@ -10,67 +9,111 @@
     <span class="bi bi-plus-circle-fill"></span> Add New Room
 </a>
 
-<!-- مربع البحث -->
 <div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="Search..." value="@SearchTerm" @oninput="OnSearchInput" />
+    <input type="text" class="form-control" placeholder="Search by room number or type..." @bind="SearchTerm" @bind:event="oninput" @onkeyup="SearchRooms" />
+    <button class="btn btn-outline-secondary" type="button" @onclick="SearchRooms">
+        <span class="bi bi-search"></span> Search
+    </button>
 </div>
 
-<!-- الجدول -->
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>Number</th>
-                <th>Type</th>
-                <th>Price/Night</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var room in _roomList)
-            {
+@if (!RoomList.Any())
+{
+    <div class="alert alert-info text-center">
+        @if (IsLoading)
+        {
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Loading rooms...</span>
+        }
+        else
+        {
+            <span>No rooms found. Click "Add New Room" to get started.</span>
+        }
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 10%;">Image</th>
+                    <th>Number</th>
+                    <th>Type</th>
+                    <th>Price/Night</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var room in RoomList)
+                {
                     <tr>
+                        <td>
+                            <img src="@ConvertByteArrayToDataUrl(room.ImageData)"
+                                 class="rounded" style="width: 75px; height: 50px; object-fit: cover;"
+                                 alt="Room Image" />
+                        </td>
                         <td>@room.RoomNumber</td>
-                        <td>@room.RoomType</td>
+                        <td>@room.RoomType?.Name</td>
                         <td>@room.PricePerNight.ToString("C")</td>
                         <td>
-                            <button class="btn btn-sm btn-info" @onclick="() => ShowDetails(room)">
-                                <i class="bi bi-eye-fill"></i> Details
+                            <button class="btn btn-sm btn-info me-1" @onclick="() => ShowDetails(room)" title="Details">
+                                <span class="bi bi-eye-fill"></span>
                             </button>
-                            <a href="@($"rooms/edit/{room.Id}")" class="btn btn-sm btn-primary">
-                                <i class="bi bi-pencil-square"></i> Edit
+                            <a href="@($"rooms/edit/{room.Id}")" class="btn btn-sm btn-primary me-1" title="Edit">
+                                <span class="bi bi-pencil-square"></span>
                             </a>
-                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoom(room.Id)">
-                                <i class="bi bi-trash-fill"></i> Delete
+                            <button class="btn btn-sm btn-danger" @onclick="() => SetRoomForDeletion(room.Id, room.RoomNumber)" title="Delete">
+                                <span class="bi bi-trash-fill"></span>
                             </button>
                         </td>
                     </tr>
-            }
-        </tbody>
-    </table>
-</div>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 
-<!-- المودال (النافذة المنبثقة) -->
-@if (_selectedRoom != null)
+@if (SelectedRoom != null)
 {
-        <div class="modal-backdrop fade show"></div>
-        <div class="modal fade show" style="display:block" @onclick="CloseDetailsModal" role="dialog">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content" @onclick:stopPropagation="true">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Room Details: @_selectedRoom.RoomNumber</h5>
-                        <button type="button" class="btn-close" @onclick="CloseDetailsModal"></button>
-                    </div>
-                    <div class="modal-body">
-
-                    @* ==> هذا هو السطر المصحح والنهائي <== *@
-                        <RoomDetailCard RoomData="_selectedRoom" />
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CloseDetailsModal">Close</button>
-                    </div>
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show" style="display:block" @onclick="CloseDetailsModal" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h5 class="modal-title">Room Details: @SelectedRoom.RoomNumber</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDetailsModal"></button>
+                </div>
+                <div class="modal-body">
+                    <RoomDetailCard RoomData="SelectedRoom" ImageConverterFunc="ConvertByteArrayToDataUrl" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDetailsModal">Close</button>
                 </div>
             </div>
         </div>
+    </div>
+}
+
+@if (RoomIdToDelete.HasValue)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show" style="display:block" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete room <strong>@RoomNumberToDelete</strong>? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }

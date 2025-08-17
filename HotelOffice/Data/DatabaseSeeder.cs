@@ -1,4 +1,4 @@
-﻿using HotelOffice.Business.Services;
+﻿using HotelOffice.Business.Interfaces;
 using HotelOffice.Data;
 using HotelOffice.Models;
 using Microsoft.EntityFrameworkCore;

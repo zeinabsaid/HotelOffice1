@@ -1,5 +1,6 @@
 ﻿// في ملف RoomService.cs
 
+using HotelOffice.Business.Interfaces;
 using HotelOffice.Data;
 using HotelOffice.Models;
 using Microsoft.EntityFrameworkCore; // ==> هذا السطر هو الذي يحل خطأ ToListAsync
@@ -38,8 +39,20 @@ namespace HotelOffice.Business.Services
 
             return await query.ToListAsync();
         }
-
-        // باقي الدوال كما هي
+        public async Task<Room?> GetByIdWithDetailsAsync(int id)
+        {
+            return await _db.Rooms
+                                 .Include(r => r.RoomType)
+                                 .FirstOrDefaultAsync(r => r.Id == id);
+        }
+        public async Task<IEnumerable<Room>> GetAllWithDetailsAsync()
+        {
+            // أضفنا Include للطابق هنا
+            return await _db.Rooms
+                                 .Include(r => r.RoomType)
+                                 .Include(r => r.Floor) // <== أضف هذا السطر
+                                 .ToListAsync();
+        }
         public async Task<Room?> GetByIdAsync(int id) => await _db.Rooms.FindAsync(id);
 
         public async Task CreateAsync(Room room)

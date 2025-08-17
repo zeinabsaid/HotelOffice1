@@ -1,0 +1,59 @@
+﻿@page "/floors-management"
+
+<PageTitle>إدارة الطوابق</PageTitle>
+
+<div class="container mt-4">
+    <h3>إدارة الطوابق</h3>
+    <hr />
+
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@(isEditing ? "تعديل الطابق" : "إضافة طابق جديد")</h5>
+            <EditForm Model="@currentFloor" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+
+                <div class="form-group mb-3">
+                    <label for="name">اسم الطابق (مثال: الطابق الأرضي, G, 1):</label>
+                    <InputText id="name" class="form-control" @bind-Value="currentFloor.Name" />
+                    <ValidationMessage For="@(() => currentFloor.Name)" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                @if (isEditing)
+                {
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">إلغاء</button>
+                }
+            </EditForm>
+        </div>
+    </div>
+
+    @if (floors == null)
+    {
+        <p><em>جاري التحميل...</em></p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>المعرف (ID)</th>
+                    <th>اسم الطابق</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var floor in floors)
+                {
+                    <tr>
+                        <td>@floor.Id</td>
+                        <td>@floor.Name</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => StartEdit(floor)">تعديل</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(floor.Id)">حذف</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

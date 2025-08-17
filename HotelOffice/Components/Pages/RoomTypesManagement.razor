@@ -1,0 +1,59 @@
+﻿@page "/room-types-management"
+
+<div class="container mt-4">
+    <h3>إدارة أنواع الغرف</h3>
+    <hr />
+
+    <!-- Form for Adding/Editing -->
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@(isEditing ? "تعديل نوع الغرفة" : "إضافة نوع غرفة جديد")</h5>
+            <EditForm Model="@currentRoomType" OnValidSubmit="HandleSave">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group mb-3">
+                    <label for="name">اسم النوع:</label>
+                    <InputText id="name" class="form-control" @bind-Value="currentRoomType.Name" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                @if (isEditing)
+                {
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">إلغاء</button>
+                }
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- Table to display existing room types -->
+    @if (roomTypes == null)
+    {
+        <p><em>جاري التحميل...</em></p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>المعرف (ID)</th>
+                    <th>اسم النوع</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var type in roomTypes)
+                {
+                    <tr>
+                        <td>@type.Id</td>
+                        <td>@type.Name</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @onclick="() => StartEdit(type)">تعديل</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => HandleDelete(type.Id)">حذف</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

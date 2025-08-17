@@ -1,4 +1,4 @@
-﻿using HotelOffice.Business.Services;
+﻿using HotelOffice.Business.Interfaces;
 using HotelOffice.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;

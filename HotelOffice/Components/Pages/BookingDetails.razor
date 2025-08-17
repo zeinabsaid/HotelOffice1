@@ -1,0 +1,33 @@
+﻿@page "/booking-details/{BookingId:int}"
+@inherits BookingDetailsBase
+
+<PageTitle>تفاصيل الحجز</PageTitle>
+
+<div class="container mt-4">
+    @if (ViewModel.Booking == null)
+    {
+        @if (ViewModel.IsBusy)
+        {
+            <div class="text-center p-5"><div class="spinner-border"></div></div>
+        }
+        else
+        {
+            <div class="alert alert-danger">@ViewModel.ErrorMessage</div>
+        }
+    }
+    else
+    {
+        <div class="card shadow-lg">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">تفاصيل الحجز - غرفة @ViewModel.Booking.Room.RoomNumber</h3>
+                <span class="badge fs-6" style="background-color: @GetStatusColor(ViewModel.Booking.BookingStatus)">
+                    @ViewModel.Booking.BookingStatus
+                </span>
+            </div>
+
+            <div class="card-body">
+                <!-- ... باقي تصميم HTML يبقى كما هو بالضبط ... -->
+            </div>
+        </div>
+    }
+</div>

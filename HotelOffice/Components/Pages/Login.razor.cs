@@ -1,4 +1,4 @@
-﻿using HotelOffice.Business.Services;
+﻿using HotelOffice.Business.Interfaces;
 using HotelOffice.State;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel.DataAnnotations;

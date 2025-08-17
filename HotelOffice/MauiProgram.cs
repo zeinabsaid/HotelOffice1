@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using HotelOffice.Business.Services; // تأكد من وجود هذا السطر
-using System.Threading.Tasks;          // تأكد من وجود هذا السطر
+using System.Threading.Tasks;
+using HotelOffice.ViewModels;
+using HotelOffice.Business.Interfaces;          // تأكد من وجود هذا السطر
 
 namespace HotelOffice
 {
@@ -38,7 +40,16 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IGuestService, GuestService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IRoomTypeService, RoomTypeService>();
+            builder.Services.AddScoped<IFloorService, FloorService>();
+            builder.Services.AddScoped<IAmenityService, AmenityService>();
 
+
+
+            // تسجيل ViewModels
+            builder.Services.AddTransient<ReceptionistDashboardViewModel>();
+            builder.Services.AddTransient<NewBookingViewModel>();
+            builder.Services.AddTransient<BookingDetailsViewModel>();
             // 4. بناء التطبيق وتهيئة قاعدة البيانات
             var app = builder.Build();
 

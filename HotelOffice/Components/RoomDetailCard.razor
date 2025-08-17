@@ -1,54 +1,43 @@
 ﻿@using HotelOffice.Models
-@using System.IO
 
-@if (RoomData != null)
+@if (RoomData != null && ImageConverterFunc != null)
 {
         <div class="card border-0">
+             <img src="@ImageConverterFunc(RoomData.ImageData)"
+                 class="card-img-top rounded border"
+                 alt="Image for room @RoomData.RoomNumber"
+                 style="max-height: 250px; object-fit: cover;" />
 
-        @* ===> هذا هو السطر الصحيح المكتوب في سطر واحد لتجنب الأخطاء <=== *@
-        <img src="@GetBlazorImageSource(RoomData.ImageUrl)" class="card-img-top" alt="Image for room @RoomData.RoomNumber" style="max-width: 100% !important; max-height: 250px !important; object-fit: cover !important;" />
-            <div class="card-body">
-                <h5 class="card-title">@RoomData.RoomType</h5>
+            <div class="card-body px-0">
+                <h4 class="card-title">@RoomData.RoomType?.Name</h4>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item ps-0"><strong>الرقم:</strong> @RoomData.RoomNumber</li>
+                    <li class="list-group-item ps-0"><strong>الطابق:</strong> @RoomData.Floor?.Name</li>
+                    <li class="list-group-item ps-0"><strong>السعة:</strong> @RoomData.Capacity فرد / @RoomData.NumberOfBeds أسرّة</li>
+                    <li class="list-group-item ps-0"><strong>السعر:</strong> @RoomData.PricePerNight.ToString("C")</li>
+                </ul>
+                <hr />
                 <p class="card-text text-muted">
+                    <strong>الوصف:</strong><br />
                 @if (!string.IsNullOrEmpty(RoomData.Description))
                 {
-                    @((MarkupString)RoomData.Description)
+                    @RoomData.Description
                 }
                 else
                 {
-                            <em>No description provided.</em>
+                            <em>لا يوجد وصف.</em>
                 }
                 </p>
             </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><strong>Number:</strong> @RoomData.RoomNumber</li>
-                <li class="list-group-item"><strong>Price:</strong> @RoomData.PricePerNight.ToString("C")</li>
-            </ul>
         </div>
 }
 
-
 @code {
-    [Parameter]
-    [EditorRequired]
-    public Room? RoomData { get; set; }
+    [Parameter, EditorRequired]
+    public Room RoomData { get; set; } = default!;
 
-    private string GetBlazorImageSource(string? imagePath)
-    {
-        if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
-        {
-            return "images/default-room.png";
-        }
-
-        try
-        {
-            byte[] imageBytes = File.ReadAllBytes(imagePath);
-            string base64String = Convert.ToBase64String(imageBytes);
-            return $"data:image/png;base64,{base64String}";
-        }
-        catch (Exception)
-        {
-            return "images/default-room.png";
-        }
-    }
+    // --- ✅ تم تصحيح نوع الـ Parameter هنا ---
+    [Parameter, EditorRequired]
+    public Func<byte[]?, string> ImageConverterFunc { get; set; } = default!;
 }

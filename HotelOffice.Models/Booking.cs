@@ -28,6 +28,15 @@ namespace HotelOffice.Models
         [Required] public DateTime CheckOutDate { get; set; }
         public int NumberOfNights { get; set; }
         public decimal TotalCost { get; set; }
+
+        // المبلغ المدفوع
+        [Required]
+        public decimal AmountPaid { get; set; } = 0;
+
+        // خاصية محسوبة (غير مخزنة في قاعدة البيانات) لعرض المبلغ المتبقي بسهولة
+        [NotMapped]
+        public decimal RemainingBalance => TotalCost - AmountPaid;
+
         public string? BookingStatus { get; set; } // "Confirmed", "CheckedIn", "CheckedOut", "Cancelled"
         public string? Notes { get; set; }
     }

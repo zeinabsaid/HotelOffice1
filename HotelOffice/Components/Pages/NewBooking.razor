@@ -1,0 +1,79 @@
+﻿@page "/new-booking/{RoomId:int}"
+@inherits NewBookingBase
+
+<PageTitle>حجز جديد - غرفة @ViewModel.Room?.RoomNumber</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            @if (ViewModel.Room != null)
+            {
+                <!-- ===> تم التعديل هنا لعرض نوع الغرفة بدلاً من الفئة <=== -->
+                <h3 class="mb-0">حجز جديد للغرفة رقم: @ViewModel.Room.RoomNumber (@ViewModel.Room.RoomType?.Name)</h3>
+            }
+            else
+            {
+                <h3 class="mb-0">تحميل تفاصيل الغرفة...</h3>
+            }
+        </div>
+        <div class="card-body">
+            @if (ViewModel.IsBusy)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">جاري إنشاء الحجز...</p>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="ViewModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+
+                    <h5 class="mb-3">تفاصيل النزيل</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم النزيل</label>
+                            <InputText class="form-control" @bind-Value="ViewModel.GuestFullName" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الرقم القومي</label>
+                            <InputText class="form-control" @bind-Value="ViewModel.GuestNationalId" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">رقم الهاتف</label>
+                            <InputText class="form-control" @bind-Value="ViewModel.GuestPhoneNumber" />
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3">تفاصيل الإقامة</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تاريخ الوصول</label>
+                            <InputDate class="form-control" @bind-Value="ViewModel.CheckInDate" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">تاريخ المغادرة</label>
+                            <InputDate class="form-control" @bind-Value="ViewModel.CheckOutDate" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">المبلغ المدفوع مقدماً</label>
+                            <InputNumber class="form-control" @bind-Value="ViewModel.AmountPaid" />
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3">@ViewModel.ErrorMessage</div>
+                    }
+
+                    <div class="mt-4 d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" @onclick="Cancel">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" disabled="@ViewModel.IsBusy">تأكيد الحجز</button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,102 @@
+﻿@page "/amenities-management"
+@inherits AmenitiesManagementBase
+
+<PageTitle>إدارة المرافق</PageTitle>
+
+<div class="container mt-4">
+    <h3>إدارة المرافق</h3>
+    <hr />
+
+    <!-- قسم الإضافة والتعديل -->
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <h5 class="card-title">@(isEditing ? "تعديل المرفق" : "إضافة مرفق جديد")</h5>
+            
+            <EditForm Model="@currentAmenity" OnValidSubmit="HandleSaveAsync">
+                <DataAnnotationsValidator />
+
+                <!-- ✅ لعرض رسائل الخطأ عند الحفظ -->
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+
+                <div class="input-group mb-3">
+                    <InputText id="name" class="form-control" @bind-Value="currentAmenity.Name" placeholder="اسم المرفق (مثال: واي فاي, تكييف)..." />
+                    <button type="submit" class="btn btn-primary">
+                        <span class="bi bi-check-circle-fill me-1"></span> حفظ
+                    </button>
+                    @if (isEditing)
+                    {
+                        <button type="button" class="btn btn-secondary" @onclick="CancelEdit">
+                             <span class="bi bi-x-circle me-1"></span> إلغاء
+                        </button>
+                    }
+                </div>
+                <ValidationMessage For="@(() => currentAmenity.Name)" />
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- قسم عرض البيانات -->
+    @if (amenities == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2"><em>جاري تحميل المرافق...</em></p>
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>اسم المرفق</th>
+                    <th style="width: 150px;">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var amenity in amenities)
+                {
+                    <tr>
+                        <td>@amenity.Name</td>
+                        <td>
+                            <button class="btn btn-sm btn-info me-1" @onclick="() => StartEdit(amenity)" title="تعديل">
+                                <span class="bi bi-pencil-square"></span>
+                            </button>
+                            <!-- ✅ زر الحذف الآن يطلب تأكيدًا أولاً -->
+                            <button class="btn btn-sm btn-danger" @onclick="() => RequestDeleteConfirmation(amenity)" title="حذف">
+                                <span class="bi bi-trash-fill"></span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<!-- ✅ نافذة تأكيد الحذف -->
+@if (amenityToDelete != null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show" style="display:block" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تأكيد الحذف</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    <p>هل أنت متأكد من رغبتك في حذف المرفق "<strong>@amenityToDelete.Name</strong>"؟</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">إلغاء</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteAsync">تأكيد الحذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

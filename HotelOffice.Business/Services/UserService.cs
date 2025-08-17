@@ -1,4 +1,5 @@
-﻿using HotelOffice.Data;
+﻿using HotelOffice.Business.Interfaces;
+using HotelOffice.Data;
 using HotelOffice.Models;
 using Microsoft.EntityFrameworkCore;
 // لا حاجة لـ using BCrypt.Net; هنا لأننا سنستخدم الاسم الكامل

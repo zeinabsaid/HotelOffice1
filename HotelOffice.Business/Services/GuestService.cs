@@ -1,7 +1,12 @@
 ﻿using HotelOffice.Data;
 using HotelOffice.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
+using System;
+using HotelOffice.Business.Interfaces;
 
 namespace HotelOffice.Business.Services
 {
@@ -14,18 +19,15 @@ namespace HotelOffice.Business.Services
             _db = context;
         }
 
-        // ==> تم تحديث هذه الدالة بالكامل لتشمل منطق الـ Include
         public async Task<IEnumerable<Guest>> GetAllAsync(Expression<Func<Guest, bool>>? filter = null, string? includeProperties = null)
         {
             IQueryable<Guest> query = _db.Guests;
 
-            // 1. تطبيق الفلتر (للبحث)
             if (filter != null)
             {
                 query = query.Where(filter);
             }
 
-            // 2. تطبيق الـ Include لجلب البيانات المرتبطة
             if (!string.IsNullOrEmpty(includeProperties))
             {
                 foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -39,9 +41,6 @@ namespace HotelOffice.Business.Services
 
         public async Task<Guest?> GetByIdAsync(int id)
         {
-            // ملاحظة: GetByIdAsync لا تحتاج لـ include هنا لأننا غالبًا ما نريد
-            // فقط الكائن الأساسي. إذا احتجنا بيانات مرتبطة مع Id محدد،
-            // يمكننا استخدام GetAllAsync مع فلتر الـ Id.
             return await _db.Guests.FindAsync(id);
         }
 
@@ -65,6 +64,36 @@ namespace HotelOffice.Business.Services
                 _db.Guests.Remove(guest);
                 await _db.SaveChangesAsync();
             }
+        }
+
+        public async Task<Guest> FindOrCreateGuestAsync(string fullName, string phoneNumber, string nationalId)
+        {
+            if (string.IsNullOrWhiteSpace(nationalId))
+            {
+                // إذا لم يكن الرقم القومي موجودًا، أنشئ نزيلًا جديدًا دائمًا
+                return await CreateNewGuest(fullName, phoneNumber, nationalId);
+            }
+
+            var existingGuest = await _db.Guests.FirstOrDefaultAsync(g => g.NationalId != null && g.NationalId.ToLower() == nationalId.ToLower());
+
+            if (existingGuest != null)
+            {
+                return existingGuest;
+            }
+
+            return await CreateNewGuest(fullName, phoneNumber, nationalId);
+        }
+
+        private async Task<Guest> CreateNewGuest(string fullName, string phoneNumber, string nationalId)
+        {
+            var newGuest = new Guest
+            {
+                FullName = fullName,
+                PhoneNumber = phoneNumber,
+                NationalId = nationalId
+            };
+            await CreateAsync(newGuest);
+            return newGuest;
         }
     }
 }

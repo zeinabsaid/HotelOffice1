@@ -1,7 +1,7 @@
 ﻿using HotelOffice.Models;
 using System.Linq.Expressions;
 
-namespace HotelOffice.Business.Services
+namespace HotelOffice.Business.Interfaces
 {
     public interface IUserService
     {

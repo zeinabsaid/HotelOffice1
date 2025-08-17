@@ -22,5 +22,7 @@ namespace HotelOffice.Models
         public string? Address { get; set; }
 
         public string? IdCardImageUrl { get; set; }
+        public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
     }
 }
