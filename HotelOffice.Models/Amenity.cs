@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HotelOffice.Models
 {
@@ -12,11 +8,11 @@ namespace HotelOffice.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "اسم المرفق مطلوب")]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        // ==> علاقة: كل مرفق يمكن أن يكون في غرف كثيرة
+        // --- التعريف الصحيح: كل مرفق يمكن أن يكون في غرف كثيرة ---
         public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
     }
 }

@@ -2,42 +2,65 @@
 
 @if (RoomData != null && ImageConverterFunc != null)
 {
-        <div class="card border-0">
-             <img src="@ImageConverterFunc(RoomData.ImageData)"
-                 class="card-img-top rounded border"
-                 alt="Image for room @RoomData.RoomNumber"
-                 style="max-height: 250px; object-fit: cover;" />
+    <div class="card border-0">
+        <img src="@ImageConverterFunc(RoomData.ImageData)"
+             class="card-img-top rounded border"
+             alt="Image for room @RoomData.RoomNumber"
+             style="max-height: 250px; object-fit: cover;" />
 
-            <div class="card-body px-0">
-                <h4 class="card-title">@RoomData.RoomType?.Name</h4>
+        <div class="card-body px-0">
+            <h4 class="card-title">@RoomData.RoomType?.Name</h4>
 
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item ps-0"><strong>الرقم:</strong> @RoomData.RoomNumber</li>
-                    <li class="list-group-item ps-0"><strong>الطابق:</strong> @RoomData.Floor?.Name</li>
-                    <li class="list-group-item ps-0"><strong>السعة:</strong> @RoomData.Capacity فرد / @RoomData.NumberOfBeds أسرّة</li>
-                    <li class="list-group-item ps-0"><strong>السعر:</strong> @RoomData.PricePerNight.ToString("C")</li>
-                </ul>
-                <hr />
-                <p class="card-text text-muted">
-                    <strong>الوصف:</strong><br />
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item ps-0"><strong>الرقم:</strong> @RoomData.RoomNumber</li>
+                <li class="list-group-item ps-0"><strong>الطابق:</strong> @RoomData.Floor?.Name</li>
+                <li class="list-group-item ps-0"><strong>السعة:</strong> @RoomData.Capacity فرد / @RoomData.NumberOfBeds أسرّة</li>
+                <li class="list-group-item ps-0"><strong>السعر:</strong> @RoomData.PricePerNight.ToString("C")</li>
+            </ul>
+
+            <!-- ✅ --- هذا هو الجزء الجديد الذي تم إضافته --- ✅ -->
+            <hr />
+            <h5 class="card-subtitle mb-2 text-muted">المرافق</h5>
+            <div>
+                @if (RoomData.Amenities != null && RoomData.Amenities.Any())
+                {
+                    // استخدام list-inline لعرض المرافق بجانب بعضها البعض
+                    <ul class="list-inline">
+                        @foreach (var amenity in RoomData.Amenities)
+                        {
+                            <li class="list-inline-item mb-1">
+                                <!-- استخدام badge لعرض كل مرفق بشكل أنيق -->
+                                <span class="badge bg-secondary">@amenity.Name</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted"><em>لا توجد مرافق محددة لهذه الغرفة.</em></p>
+                }
+            </div>
+
+            <hr />
+            <h5 class="card-subtitle mb-2 text-muted">الوصف</h5>
+            <p class="card-text">
                 @if (!string.IsNullOrEmpty(RoomData.Description))
                 {
                     @RoomData.Description
                 }
                 else
                 {
-                            <em>لا يوجد وصف.</em>
+                    <em class="text-muted">لا يوجد وصف.</em>
                 }
-                </p>
-            </div>
+            </p>
         </div>
+    </div>
 }
 
 @code {
     [Parameter, EditorRequired]
     public Room RoomData { get; set; } = default!;
 
-    // --- ✅ تم تصحيح نوع الـ Parameter هنا ---
     [Parameter, EditorRequired]
     public Func<byte[]?, string> ImageConverterFunc { get; set; } = default!;
 }

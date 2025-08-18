@@ -25,32 +25,25 @@ namespace HotelOffice.Components.Pages
 
         protected List<RoomType> roomTypes = new();
         protected List<Floor> floors = new();
-        protected List<Amenity> allAmenities = new();
-        protected Dictionary<int, bool> selectedAmenities = new();
         protected string? imageDataUrl;
+
+        // --- ✅  منطق جديد للمرافق ---
+        protected bool IsAmenitiesModalOpen = false;
+        protected List<Amenity> allAmenities = new();
+        protected HashSet<int> selectedAmenityIds = new();
 
         protected override async Task OnInitializedAsync()
         {
             try
             {
-                // التحميل بالتتابع هو الطريقة الأكثر أمانًا لمنع تضارب DbContext
+                // لم نعد نحتاج إلى تحميل المرافق هنا في البداية
                 roomTypes = await RoomTypeService.GetAllRoomTypesAsync() ?? new List<RoomType>();
                 floors = await FloorService.GetAllFloorsAsync() ?? new List<Floor>();
-                allAmenities = await AmenityService.GetAllAmenitiesAsync() ?? new List<Amenity>();
-
-                if (allAmenities != null)
-                {
-                    // التحصين ضد أي بيانات مكررة قد تأتي من قاعدة البيانات
-                    selectedAmenities = allAmenities
-                        .GroupBy(a => a.Id)
-                        .Select(g => g.First())
-                        .ToDictionary(a => a.Id, a => false);
-                }
             }
             catch (Exception ex)
             {
                 errorMessage = $"حدث خطأ فادح أثناء تحميل البيانات: {ex.ToString()}";
-                Console.WriteLine(errorMessage); // لطباعة الخطأ الكامل في نافذة الـ Output
+                Console.WriteLine(errorMessage);
             }
             finally
             {
@@ -58,17 +51,45 @@ namespace HotelOffice.Components.Pages
             }
         }
 
+        // --- ✅  دوال جديدة لإدارة النافذة المنبثقة ---
+        protected async Task OpenAmenitiesModal()
+        {
+            // تحميل المرافق فقط عند الحاجة إليها
+            if (!allAmenities.Any())
+            {
+                allAmenities = await AmenityService.GetAllAmenitiesAsync() ?? new List<Amenity>();
+            }
+            IsAmenitiesModalOpen = true;
+        }
+
+        protected void CloseAmenitiesModal()
+        {
+            IsAmenitiesModalOpen = false;
+        }
+
+        protected void ToggleAmenitySelection(int amenityId)
+        {
+            if (selectedAmenityIds.Contains(amenityId))
+            {
+                selectedAmenityIds.Remove(amenityId);
+            }
+            else
+            {
+                selectedAmenityIds.Add(amenityId);
+            }
+        }
+
         protected async Task HandleAddRoom()
         {
+            // --- ✅  هذا هو السطر المضاف للتشخيص ---
+            Console.WriteLine("!!!!!! زر الحفظ تم الضغط عليه والتحقق نجح !!!!!!");
+
             isSaving = true;
             errorMessage = null;
             try
             {
-                newRoom.Amenities.Clear();
-                var selectedAmenityIds = selectedAmenities.Where(kv => kv.Value).Select(kv => kv.Key).ToHashSet();
-
-                // التأكد من عدم إضافة مرافق مكررة عند الحفظ
-                newRoom.Amenities = allAmenities.Where(a => selectedAmenityIds.Contains(a.Id)).DistinctBy(a => a.Id).ToList();
+                // بناء قائمة المرافق من الـ IDs المختارة
+                newRoom.Amenities = allAmenities.Where(a => selectedAmenityIds.Contains(a.Id)).ToList();
 
                 await RoomService.CreateAsync(newRoom);
                 NavigationManager.NavigateTo("/rooms");
@@ -76,21 +97,19 @@ namespace HotelOffice.Components.Pages
             catch (Exception ex)
             {
                 errorMessage = $"خطأ أثناء حفظ الغرفة: {ex.Message}";
-                Console.WriteLine(ex);
             }
             finally
             {
                 isSaving = false;
             }
         }
-
         protected async Task HandleImageUpload(InputFileChangeEventArgs e)
         {
             errorMessage = null;
             var file = e.File;
             if (file == null) return;
 
-            var maxFileSize = 10 * 1024 * 1024; // 10 MB
+            var maxFileSize = 10 * 1024 * 1024;
             if (file.Size > maxFileSize)
             {
                 errorMessage = "حجم الملف كبير جدًا. الرجاء اختيار صورة أصغر من 10 ميجابايت.";

@@ -3,6 +3,7 @@ using System;
 using HotelOffice.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,27 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelOffice.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250817234901_nn2")]
+    partial class nn2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
-
-            modelBuilder.Entity("AmenityRoom", b =>
-                {
-                    b.Property<int>("AmenitiesId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("RoomsId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("AmenitiesId", "RoomsId");
-
-                    b.HasIndex("RoomsId");
-
-                    b.ToTable("AmenityRoom", (string)null);
-                });
 
             modelBuilder.Entity("HotelOffice.Models.Amenity", b =>
                 {
@@ -43,7 +31,12 @@ namespace HotelOffice.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("RoomId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
 
                     b.ToTable("Amenities");
                 });
@@ -227,19 +220,15 @@ namespace HotelOffice.Data.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("AmenityRoom", b =>
+            modelBuilder.Entity("HotelOffice.Models.Amenity", b =>
                 {
-                    b.HasOne("HotelOffice.Models.Amenity", null)
-                        .WithMany()
-                        .HasForeignKey("AmenitiesId")
+                    b.HasOne("HotelOffice.Models.Room", "Room")
+                        .WithMany("Amenities")
+                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HotelOffice.Models.Room", null)
-                        .WithMany()
-                        .HasForeignKey("RoomsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("HotelOffice.Models.Booking", b =>
@@ -300,6 +289,8 @@ namespace HotelOffice.Data.Migrations
 
             modelBuilder.Entity("HotelOffice.Models.Room", b =>
                 {
+                    b.Navigation("Amenities");
+
                     b.Navigation("Bookings");
                 });
 

@@ -76,17 +76,31 @@ else
 
         <hr />
         <h5 class="mb-3">المرافق المتوفرة</h5>
-        <div class="row mb-3">
-            <!-- ✅ --- تم إرجاع هذا الجزء إلى الطريقة البسيطة والآمنة --- ✅ -->
-            @foreach (var amenity in allAmenities)
+
+        <!-- ✅ --- التصميم الجديد والآمن للمرافق --- ✅ -->
+        <div class="mb-3 p-3 border rounded bg-light">
+            @if (!selectedAmenityIds.Any())
             {
-                <div class="col-lg-3 col-md-4 col-sm-6" @key="amenity.Id">
-                    <div class="form-check">
-                        <InputCheckbox id="@($"amenity-{amenity.Id}")" class="form-check-input" @bind-Value="selectedAmenities[amenity.Id]" />
-                        <label class="form-check-label" for="@($"amenity-{amenity.Id}")">@amenity.Name</label>
-                    </div>
-                </div>
+                <p class="text-muted mb-0"><em>لم يتم اختيار أي مرافق. انقر على الزر لإضافة مرافق.</em></p>
             }
+            else
+            {
+                <ul class="list-inline mb-0">
+                    @foreach (var amenityId in selectedAmenityIds)
+                    {
+                        var amenity = allAmenities?.FirstOrDefault(a => a.Id == amenityId);
+                        if (amenity != null)
+                        {
+                            <li class="list-inline-item mb-1">
+                                <span class="badge bg-secondary">@amenity.Name</span>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+            <button type="button" class="btn btn-outline-primary btn-sm mt-2" @onclick="OpenAmenitiesModal">
+                <span class="bi bi-pencil-square me-1"></span> إدارة المرافق
+            </button>
         </div>
 
         <hr />
@@ -111,15 +125,61 @@ else
                 @if (isSaving)
                 {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span> جاري الحفظ...</span>
                 }
                 else
                 {
+                    <span class="bi bi-check-circle-fill me-1"></span>
                     <span>حفظ الغرفة</span>
                 }
             </button>
             <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                <span class="bi bi-x-circle me-1"></span>
                 <span>إلغاء</span>
             </button>
         </div>
     </EditForm>
+}
+
+<!-- ✅ --- النافذة المنبثقة لاختيار المرافق --- ✅ -->
+@if (IsAmenitiesModalOpen)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show" style="display:block" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">اختر المرافق</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAmenitiesModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (allAmenities == null || !allAmenities.Any())
+                    {
+                        <p>لا توجد مرافق متاحة. يرجى إضافتها من شاشة "إدارة المرافق" أولاً.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var amenity in allAmenities)
+                            {
+                                <label class="list-group-item d-flex align-items-center">
+                                    <input class="form-check-input me-3"
+                                           type="checkbox"
+                                           checked="@selectedAmenityIds.Contains(amenity.Id)"
+                                           @onchange="() => ToggleAmenitySelection(amenity.Id)" />
+                                    @amenity.Name
+                                </label>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="CloseAmenitiesModal">
+                        <span class="bi bi-check-lg me-1"></span>
+                        تم
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
