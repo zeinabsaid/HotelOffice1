@@ -1,0 +1,55 @@
+﻿@page "/hotel-settings"
+
+<PageTitle>إعدادات الفندق</PageTitle>
+
+<h3>إعدادات الفندق</h3>
+<p>قم بتحديد السياسات العامة للفندق مثل وقت الدخول والخروج الرسمي.</p>
+
+<hr />
+
+@if (isLoading)
+{
+        <p><em>جاري تحميل الإعدادات...</em></p>
+}
+else
+{
+        <div class="row">
+            <div class="col-md-8">
+                <EditForm Model="@settings" OnValidSubmit="HandleSave">
+                    <DataAnnotationsValidator />
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+
+                            <!-- ✅  حقل وقت الدخول الجديد -->
+                            <div class="mb-3">
+                                <label for="checkInTime" class="form-label">وقت الدخول</label>
+                                <InputDate id="checkInTime" @bind-Value="settings.CheckInTime" Type="InputDateType.Time" class="form-control" />
+                                <ValidationMessage For="@(() => settings.CheckInTime)" />
+                            </div>
+
+                            <!-- ✅  حقل وقت الخروج الجديد -->
+                            <div class="mb-3">
+                                <label for="checkOutTime" class="form-label">وقت الخروج</label>
+                                <InputDate id="checkOutTime" @bind-Value="settings.CheckOutTime" Type="InputDateType.Time" class="form-control" />
+                                <ValidationMessage For="@(() => settings.CheckOutTime)" />
+                            </div>
+
+                        </div>
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                        </div>
+                    </div>
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                            <div class="alert alert-success mt-3">@successMessage</div>
+                }
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                            <div class="alert alert-danger mt-3">@errorMessage</div>
+                }
+                </EditForm>
+            </div>
+        </div>
+}

@@ -21,6 +21,7 @@ namespace HotelOffice.Data
         public DbSet<Guest> Guests { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Amenity> Amenities { get; set; }
+        public DbSet<Setting> Settings { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

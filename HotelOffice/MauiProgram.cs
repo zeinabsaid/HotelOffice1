@@ -43,7 +43,7 @@ namespace HotelOffice
             builder.Services.AddScoped<IRoomTypeService, RoomTypeService>();
             builder.Services.AddScoped<IFloorService, FloorService>();
             builder.Services.AddScoped<IAmenityService, AmenityService>();
-
+            builder.Services.AddScoped<IHotelSettingsService, HotelSettingsService>();
             // تسجيل ViewModels
             builder.Services.AddTransient<ReceptionistDashboardViewModel>();
             builder.Services.AddTransient<NewBookingViewModel>();
